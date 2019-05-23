@@ -1,10 +1,13 @@
-# array_averager.py
+# irrad_balancer.py
 # 5/20/19 by Eric Graves
 
 # GOALS:
 # -- Recreate results of https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6317197
 # -- Use Python logging to make testable and deployable code
 # -- Create robustly-testable script and then optimize it later
+
+#TODO:
+# -- Keep track of transformations to map original layout to switching layout
 
 # Use Irradiance Equalization Principle to sort solar cells to optimize
 # irradiance of individual cells in a switched-array
@@ -24,7 +27,7 @@ logging.debug("Testing logging")
 input_rows = 4 # rows
 input_cols = 15 # cols
 # =============================================================================
-# =============================================================================
+# ==== Function to sort array elements and flip every other row ===============
 def sort_and_flip(test_array):
 
     # Input array [n by m], get shape for robustness
@@ -74,7 +77,7 @@ def sort_and_flip(test_array):
 
     return test_array_out
 # =============================================================================
-# =============================================================================
+# ========== Function to sum adjacent odd and even row elements ===============
 def sum_adj_rows(test_array):
     # Add every two rows
     # -- (i.e. 1+2, 3+4, 5+6), to make a new array [n/2 by m]
@@ -97,28 +100,20 @@ def sum_adj_rows(test_array):
     return test_array_summed
 # =============================================================================
 
-# Fill test array with random integer values in correct range (0-200)
+# Continue Code Body
+
+# Generate test array with random integer values in correct range (0-200)
 test_array = np.random.randint(0, high=200, size=(input_rows, input_cols))
 logging.debug("Testing with a " + str(input_rows) + " by " + str(input_cols) + " array:")
 logging.debug(test_array) # prints with first row on debug message line
 
-
-# Input array [n by m], get shape for robustness
+# Input array [n by m], get array shape for robustness
 [n,m] = test_array.shape # rows, cols
-# Create output array
-# -- Pad with row of zeros if there is an odd number of rows
-# -- Padding can happen multiple times (ie 6/2 = 3, which would need padding)
-# if n%2 != 0:
-#     test_array_out = np.zeros((n+1,m))
-# else:
-#     test_array_out = np.zeros((n,m))
 
 # Calculate the number of times the array will be sorted, flipped, summed
 # -- from the number of rows. Each loop, the number of rows halves (rounded up),
 # -- and repeats until number of rows = 1. This is repeated division by 2
-# -- (rightshift binary operator)
 num_loops = 0;
-
 if n < 1:
     logging.debug("Array has less than 1 row")
 else:
@@ -127,12 +122,15 @@ else:
         num_loops += 1
     logging.debug("This array will take " + str(num_loops))
 
+# Run the operations the correct number of times on the test array
 for i in range(0,num_loops):
 
-    [r,c] = test_array.shape
-    # sort the array and flip the rows
+    [r,c] = test_array.shape # Number of rows changes size with each loop
+
+    # Sort the array and flip every other row
     test_array = sort_and_flip(test_array)
 
+    # Add padding row if needed (if odd number of rows)
     if r%2 != 0:
         new_row = np.zeros((1,m))
         test_array = np.concatenate((test_array, new_row), axis=0)
@@ -140,14 +138,15 @@ for i in range(0,num_loops):
         logging.debug("Padding Added:")
         logging.debug(test_array)
 
+    # Sum adjacent odd and even rows
     test_array = sum_adj_rows(test_array)
     logging.debug("Final array:")
     logging.debug(test_array)
 
-    logging.debug("++++++++++++++++++++++++++++++")
+    logging.debug("++++++++++++++++++++++++++++++") # Pad output for readability
     logging.debug("++++++++++++++++++++++++++++++\n")
 
 
-
-# Check to see how close these values are spread as a measure of how evenly spread the original values are
-# The final layout tells you the switching layout to optimize irradiances among cells
+# The final array should have elements which are close in magnitude to one
+# -- another. From the operations done here, the switches can be set to optimize
+# -- the irradiance spread over the cells.
