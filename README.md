@@ -1,6 +1,7 @@
-# irradiance_optimization
+# Irradiance equalization (IEq) based reconfiguration for optimization of dynamic photovoltaic arrays (DPVAs)
 
-- Use Irradiance Equalization Principle to sort solar cells to optimize irradiance of individual cells in a switched-array. Recreate results of https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6317197
+- Use IEq to optimize irradiance distribution in a DPVA using the methods proposed by "Improved Optimization Strategy for Irradiance Equalization in Dynamic Photovoltaic Arrays". (Avaliable: https://ieeexplore.ieee.org/stamp/stamp.jsp?tp=&arnumber=6317197 )
+- Recreate results of the paper in Python.
 - Use Python logging to make testable and deployable code
 
 TODO:
